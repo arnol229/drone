@@ -43,9 +43,12 @@ class Drone:
         return data
 
     def fly(self):
-        val = (((self.read_adc(self.__joy_x_channel/10)-100)*-1))
-        print(
-            "--------------------------------------------\n"+"Value: {0}".format(val), end='\r')
+        try:
+            while True:
+                val = (((self.read_adc(self.__joy_x_channel/10)-100)*-1))
+                print("--------------------------------------------\n"+"Value: {0}".format(val), end='\r')
+        except KeyboardInterrupt:
+            print("Exiting flying mode")
 
 
 print("well its something")
