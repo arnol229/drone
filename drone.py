@@ -29,6 +29,7 @@ class Drone:
     def __init__(self):
         ## Delay in checking input
         self.__delay = .02
+        GPIO.setmode(GPIO.BCM)
 
         ########## SPI ##########
         print "Initializing SPI port"
@@ -43,9 +44,12 @@ class Drone:
 
 
         ########## LED ##########
-        self.__led_r = None
-        self.__led_b = None
-        self.__led_g = None
+        self.__led_r_pin = 24
+        self.__led_b_pin = None
+        self.__led_g_pin = None
+
+        GPIO.setup(self.__led_r_pin, GPIO.OUT)
+        GPIO.output(self.__led_r_pin, GPIO.HIGH)
 
 
         ########## JOYSTICK ##########
@@ -84,7 +88,6 @@ class Drone:
         self.__starting_freq = 1000
         self.__starting_dc = 50
 
-        GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.__motor1_pin, GPIO.OUT)#left motor
         GPIO.setup(self.__motor2_pin, GPIO.OUT)#right motor
         self.motor_1_pwm = GPIO.PWM(self.__motor1_pin,self.__starting_freq)
