@@ -16,6 +16,7 @@ class Drone:
         self.__spi.open(0,0)
         ## ADC channel on the ADC chip
         self.__joy_x_channel=0
+        self.__joy_y_channel=1
 
         ## Delay in checking input
         self.delay=.5
@@ -45,10 +46,11 @@ class Drone:
     def fly(self):
         try:
             while True:
-                val = ((self.read_adc(self.__joy_x_channel)/10)-100)*-1
-                print "Value: {0}\r".format(val)
+                x_val = ((self.read_adc(self.__joy_x_channel)/10)-100)*-1
+                y_val = ((self.read_adc(self.__joy_y_channel)/10)-100)*-1
+                print "x:{0} | y:{1}\r".format(x_val,y_val),
         except KeyboardInterrupt:
-            print "Exiting flying mode")
+            print "Exiting flying mode"
         except Exception as e:
             print "error while flying: {0}".format(str(e))
 
@@ -58,4 +60,5 @@ if __name__ == "__main__":
     time.sleep(2)
     print "starting to fly"
     drone.fly()
+    print "cleaning up"
     GPIO.cleanup()
