@@ -5,6 +5,7 @@ try:
         import os
         from RPi import GPIO
         import threading
+        import smbus
 except Exception as e:
     print("Error importing module: {0}".format(str(e)))
     exit()
@@ -89,8 +90,8 @@ class Drone:
 
     def gyro_input(self):
         def read_word(adr):
-            high = bus.read_byte_data(address, adr)
-            low = bus.read_byte_data(address, adr+1)
+            high = self.__bus.read_byte_data(address, adr)
+            low = self.__bus.read_byte_data(address, adr+1)
             val = (high << 8) + low
             return val
 
