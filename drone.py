@@ -90,8 +90,8 @@ class Drone:
 
     def gyro_input(self):
         def read_word(adr):
-            high = self.__bus.read_byte_data(address, adr)
-            low = self.__bus.read_byte_data(address, adr+1)
+            high = self.__bus.read_byte_data(0x68, adr)
+            low = self.__bus.read_byte_data(0x68, adr+1)
             val = (high << 8) + low
             return val
 
@@ -114,10 +114,20 @@ class Drone:
     def fly(self):
         try:
             while True:
-                print "x:{0} | y:{1} | click:{2}            \r".format(
+                joy_text = "Joystick --- x:{0} | y:{1} | click:{2}            \n".format(
                         self.joy_x_val,
                         self.joy_y_val,
-                        self.joy_swt_val),
+                        self.joy_swt_val)
+                gyro_text = "Gyro --- x:{0} | y:{1} | z:{2}            \n".format(
+                        self.gyro_x_val,
+                        self.gyro_y_val,
+                        self.gyro_z_val)
+                accel_text = "Accel --- x:{0} | y:{1} | z:{2}            \n".format(
+                        self.accel_x_val,
+                        self.accel_y_val,
+                        self.accel_z_val)
+                print (joy_text + gyro_text + accel_text),
+
         except KeyboardInterrupt:
             print
             print "Exiting flying mode"
