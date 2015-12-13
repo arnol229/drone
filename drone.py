@@ -101,15 +101,15 @@ class Drone:
                 return -((65535 - val) + 1)
             else:
                 return val
+        while True:
+            self.gyro_x_val = read_word_2c(0x43)
+            self.gyro_y_val = read_word_2c(0x45)
+            self.gyro_z_val = read_word_2c(0x47)
 
-        self.gyro_x_val = read_word_2c(0x43)
-        self.gyro_y_val = read_word_2c(0x45)
-        self.gyro_z_val = read_word_2c(0x47)
-
-        self.accel_x_val = read_word_2c(0x3b) / 16384.0
-        self.accel_y_val = read_word_2c(0x3d) / 16384.0
-        self.accel_z_val = read_word_2c(0x3f) / 16384.0
-        time.sleep(self.__delay)
+            self.accel_x_val = read_word_2c(0x3b)# / 16384.0
+            self.accel_y_val = read_word_2c(0x3d)# / 16384.0
+            self.accel_z_val = read_word_2c(0x3f)# / 16384.0
+            time.sleep(self.__delay)
 
     def fly(self):
         try:
