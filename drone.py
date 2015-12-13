@@ -12,6 +12,14 @@ except Exception as e:
     exit()
 
 class Drone:
+    """
+    Drone Prototype
+    ---
+    Enabled:
+    Gyro/Accel
+    Motor
+    Joystick
+    """
     def __init__(self):
         ## Delay in checking input
         self.__delay = .03
