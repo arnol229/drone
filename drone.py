@@ -150,22 +150,22 @@ class Drone:
                 if self.joy_x_val < 55:
                     adj_val = abs(self.joy_x_val - speed_val)
                     pwm_val = speed_val + adj_val
-                    text = "\rleft: " + str(pwm_val) + " right: " + str(speed_val)
                     if pwm_val > 90:
                         pwm_val = 90
                     elif pwm_val < 20:
                         pwm_val = 10
+                    text = "\rleft: " + str(pwm_val) + " right: " + str(speed_val)
                     self.motor_1_pwm.ChangeDutyCycle(pwm_val)
                     self.motor_2_pwm.ChangeDutyCycle(speed_val)
 
                 elif self.joy_x_val > 45:
                     adj_val = abs(self.joy_x_val - speed_val)
                     pwm_val = speed_val + adj_val
-                    text = "\rleft: " + str(speed_val) + " right: " + str(pwm_val)
                     if pwm_val > 90:
                         pwm_val = 90
                     elif pwm_val < 20:
                         pwm_val = 10
+                    text = "\rleft: " + str(speed_val) + " right: " + str(pwm_val)
                     self.motor_2_pwm.ChangeDutyCycle(pwm_val)
                     self.motor_1_pwm.ChangeDutyCycle(speed_val)
 
