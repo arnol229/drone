@@ -133,20 +133,20 @@ class Drone:
     def fly(self):
         try:
             while True:
-                self.pwm
                 joy_text = "\rJoystick --- (( x:{0} | y:{1} | click:{2} )) ".format(
                         self.joy_x_val,
                         self.joy_y_val,
                         self.joy_swt_val)
-                gyro_text = "Gyro --- (( x:{0} | y:{1} | z:{2} )) ".format(
-                        self.gyro_x_val,
-                        self.gyro_y_val,
-                        self.gyro_z_val)
-                accel_text = "Accel --- (( x:{0} | y:{1} | z:{2} ))".format(
-                        self.accel_x_val,
-                        self.accel_y_val,
-                        self.accel_z_val)
-                sys.stdout.write(joy_text + gyro_text + accel_text)
+                # gyro_text = "Gyro --- (( x:{0} | y:{1} | z:{2} )) ".format(
+                #         self.gyro_x_val,
+                #         self.gyro_y_val,
+                #         self.gyro_z_val)
+                # accel_text = "Accel --- (( x:{0} | y:{1} | z:{2} ))".format(
+                #         self.accel_x_val,
+                #         self.accel_y_val,
+                #         self.accel_z_val)
+                sys.stdout.write(joy_text)# + gyro_text + accel_text)\
+                sys.stdout.write("\033[K")
                 sys.stdout.flush()
 
         except KeyboardInterrupt:
