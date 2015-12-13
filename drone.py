@@ -17,8 +17,14 @@ class Drone:
     ---
     Enabled:
     Gyro/Accel
-    Motor
     Joystick
+    motor
+    ======
+    To-Do
+    ======
+        Enable motor
+        Encorporate 2 motors
+        Everything else.
     """
     def __init__(self):
         ## Delay in checking input
