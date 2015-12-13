@@ -81,7 +81,7 @@ class Drone:
 
         self.__motor1_pin = 21
         self.__motor2_pin = 20
-        self.__starting_freq = 4000
+        self.__starting_freq = 1000
         self.__starting_dc = 50
 
         GPIO.setmode(GPIO.BCM)
@@ -90,10 +90,25 @@ class Drone:
         self.motor_1_pwm = GPIO.PWM(self.__motor1_pin,self.__starting_freq)
         self.motor_2_pwm = GPIO.PWM(self.__motor2_pin,self.__starting_freq)
         #calibration should move to its own function
-        self.motor_2_pwm.start(50)
-        self.motor_1_pwm.start(50)
+        self.calibrate_motors()
         ############################
         print "Ready"
+
+    def calibrate_motors(self):
+        print "click in joystick to begin calibration"
+        while True:
+            if self.joy_swt_val == 0:
+                self.motor_2_pwm.start(50)
+                self.motor_1_pwm.start(50)
+                break
+        print "click in joystick to go low"
+        while True:
+            if self.joy_swt_val == 0:
+                self.motor_1_pwm.ChangeDutyCycle(0)
+                self.motor_2_pwm.ChangeDutyCycle(0)                
+                break
+        print "did it work? or something?"
+        time.sleep(3)
 
     def read_adc(self, channel):
         adc = self.__spi.xfer2([1,(8+channel)<<4,0])
