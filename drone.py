@@ -50,7 +50,6 @@ class Drone:
                 x_val = ((self.read_adc(self.__joy_x_channel)/10)-100)*-1
                 y_val = ((self.read_adc(self.__joy_y_channel)/10)-100)*-1
                 swt_val = self.read_adc(self.__joy_swt_channel)
-                swt_count = self.__swt_count
                 print "x:{0} | y:{1} | click:{2}\r".format(x_val,y_val, swt_val),
                 time.sleep(self.__delay)
         except KeyboardInterrupt:
