@@ -17,6 +17,7 @@ class Drone:
         ## ADC channel on the ADC chip
         self.__joy_x_channel=0
         self.__joy_y_channel=1
+        self.__joy_swt_channel=2
 
         ## Delay in checking input
         self.delay=.5
@@ -48,7 +49,8 @@ class Drone:
             while True:
                 x_val = ((self.read_adc(self.__joy_x_channel)/10)-100)*-1
                 y_val = ((self.read_adc(self.__joy_y_channel)/10)-100)*-1
-                print "x:{0} | y:{1}\r".format(x_val,y_val),
+                swt_val = self.read_adc(self.__joy_swt_channel)
+                print "x:{0} | y:{1} | click:{2}\r".format(x_val,y_val, swt_val),
         except KeyboardInterrupt:
             print "Exiting flying mode"
         except Exception as e:
