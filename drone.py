@@ -18,6 +18,7 @@ class Drone:
         self.__joy_x_channel=0
         self.__joy_y_channel=1
         self.__joy_swt_channel=2
+        self.__swt_count=10
 
         ## Delay in checking input
         self.delay=.5
@@ -46,10 +47,14 @@ class Drone:
 
     def fly(self):
         try:
+            swt_count = self.__swt_count
             while True:
                 x_val = ((self.read_adc(self.__joy_x_channel)/10)-100)*-1
                 y_val = ((self.read_adc(self.__joy_y_channel)/10)-100)*-1
-                swt_val = self.read_adc(self.__joy_swt_channel)
+                if swt_count == 0:
+                    swt_val = self.read_adc(self.__joy_swt_channel)
+                    swt_count = self.__swt_count
+                swt_count -= 1
                 print "x:{0} | y:{1} | click:{2}\r".format(x_val,y_val, swt_val),
         except KeyboardInterrupt:
             print "Exiting flying mode"
