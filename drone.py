@@ -14,6 +14,7 @@ class Drone:
         ## SPI interface for reading the ADC
         print("Initializing SPI port")
         self.__spi=spidev.SpiDev()
+        self.__spi.open(0,0)
         ## ADC channel on the ADC chip
         self.__joy_x_channel=0
 
@@ -37,10 +38,10 @@ class Drone:
         self.pwm=GPIO.PWM(self.__motor_pwm_pin,self.__starting_freq)
         self.pwm.start(50)
 
-    # def read_adc(self, channel):
-    #     adc = self.__spi.xfer2([1,(8+channel)<<4,0])
-    #     data = ((adc[1]&3) << 8) + adc[2]
-    #     return data
+    def read_adc(self, channel):
+        adc = self.__spi.xfer2([1,(8+channel)<<4,0])
+        data = ((adc[1]&3) << 8) + adc[2]
+        return data
 
     def fly(self):
         try:
@@ -52,12 +53,12 @@ class Drone:
         except Exception as e:
             print("error while flying: {0}".format(str(e)))
 
-    def read_adc(adcnum):
-        if((adcnum > 7) or (adcnum < 0)):
-            return -1
-        r = self.__spi.xfer2([1,(8+adcnum)<<4,0])
-        adcout = ((r[1]&3 << 8) + r[2]
-        return adcout
+    # def read_adc(adcnum):
+    #     if((adcnum > 7) or (adcnum < 0)):
+    #         return -1
+    #     r = self.__spi.xfer2([1,(8+adcnum)<<4,0])
+    #     adcout = ((r[1]&3 << 8) + r[2])
+    #     return adcout
 
 
 print("well its something")
