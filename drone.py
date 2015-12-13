@@ -140,17 +140,17 @@ class Drone:
                 # josytick moves to the right, x input is lower
                 # joystick moves to the left, x input is bigger
                 speed_val = self.joy_y_val
-                if speed_val >= 80:
-                    speed_val = 80
-                elif speed_val <=20:
-                    speed_val = 20
+                if speed_val >= 70:
+                    speed_val = 70
+                elif speed_val <=30:
+                    speed_val = 30
 
                 text = "\r50"
 
                 if self.joy_x_val > 55:
                     adj_val = abs(self.joy_x_val - speed_val)
                     pwm_val = speed_val+adj_val
-                    text = "\r" + str(pwm_val)
+                    text = "\rleft: " + str(pwm_val) + "right: " + str(speed_val)
                     if pwm_val > 90:
                         pwm_val = 90
                     elif pwm_val < 20:
@@ -161,7 +161,7 @@ class Drone:
                 elif self.joy_x_val < 45:
                     adj_val = abs(self.joy_x_val - speed_val)
                     pwm_val = speed_val+adj_val
-                    text = "\r" + str(pwm_val)
+                    text = "\rleft: " + str(speed_val) + "right: " + str(pwm_val)
                     if pwm_val > 90:
                         pwm_val = 90
                     elif pwm_val < 20:
