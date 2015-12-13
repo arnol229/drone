@@ -1,9 +1,13 @@
-#!/usr/bin/env python
 from __future__ import print_function
-import spidev
-import time
-import os
-from RPi import GPIO
+#!/usr/bin/env python
+try:
+        import spidev
+        import time
+        import os
+        from RPi import GPIO
+except Exception as e:
+    print("messed up: {0}".format(str(e)))
+    exit()
 
 class Drone:
     def __init__(self):
@@ -44,7 +48,7 @@ class Drone:
             "--------------------------------------------\n"+"Value: {0}".format(val), end='\r')
 
 
-
+print("well its something")
 if __name__ == "__main__":
     print ("Drone initializing...")
     drone = Drone()
