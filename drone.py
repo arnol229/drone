@@ -145,12 +145,12 @@ class Drone:
                 elif speed_val <=30:
                     speed_val = 30
 
-                text = "\r50"
+                text = "\rstarting"
 
                 if self.joy_x_val < 55:
                     adj_val = abs(self.joy_x_val - speed_val)
                     pwm_val = speed_val + adj_val
-                    text = "\rleft: " + str(pwm_val) + "right: " + str(speed_val)
+                    text = "\rleft: " + str(pwm_val) + " right: " + str(speed_val)
                     if pwm_val > 90:
                         pwm_val = 90
                     elif pwm_val < 20:
@@ -161,7 +161,7 @@ class Drone:
                 elif self.joy_x_val > 45:
                     adj_val = abs(self.joy_x_val - speed_val)
                     pwm_val = speed_val + adj_val
-                    text = "\rleft: " + str(speed_val) + "right: " + str(pwm_val)
+                    text = "\rleft: " + str(speed_val) + " right: " + str(pwm_val)
                     if pwm_val > 90:
                         pwm_val = 90
                     elif pwm_val < 20:
@@ -170,8 +170,9 @@ class Drone:
                     self.motor_1_pwm.ChangeDutyCycle(speed_val)
 
                 else:
-                    self.motor_2_pwm.ChangeDutyCycle(50)
-                    self.motor_1_pwm.ChangeDutyCycle(50)
+                    self.motor_2_pwm.ChangeDutyCycle(speed_val)
+                    self.motor_1_pwm.ChangeDutyCycle(speed_val)
+                    text = "\rleft: " + str(speed_val) + " right: " + str(speed_val)
                 # gyro_text = "Gyro --- (( x:{0} | y:{1} | z:{2} )) ".format(
                 #         self.gyro_x_val,
                 #         self.gyro_y_val,
