@@ -45,16 +45,18 @@ class Drone:
     def fly(self):
         try:
             while True:
-                val = (((self.read_adc(self.__joy_x_channel/10)-100)*-1))
+                val = ((self.read_adc(self.__joy_x_channel)/10)-100)*-1
                 print("--------------------------------------------\n"+"Value: {0}".format(val), end='\r')
         except KeyboardInterrupt:
             print("Exiting flying mode")
+        except Exception as e:
+            print("error while flying: {0}".format(str(e)))
 
 
 print("well its something")
 if __name__ == "__main__":
     print ("Drone initializing...")
     drone = Drone()
-    time.sleep(5)
+    time.sleep(2)
     print ("starting to fly")
     drone.fly()
