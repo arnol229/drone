@@ -20,6 +20,11 @@ class Drone:
         self.__joy_y_channel=1
         self.__joy_swt_channel=2
 
+        # Joy stick values
+        self.joy_x_val=None
+        self.joy_y_val=None
+        self.joy_swt_val=None
+
         ## Delay in checking input
         self.__delay=.005
 
@@ -54,7 +59,7 @@ class Drone:
 
     def fly(self):
         try:
-            threading.Thread(target=joy_input)
+            threading.Thread(target=self.joy_input)
             while True:
                 print "x:{0} | y:{1} | click:{2}\r".format(
                         self.joy_x_val,
