@@ -85,8 +85,8 @@ class Drone:
         self.__starting_dc = 50
 
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.__motor1_pin, GPIO.OUT)
-        GPIO.setup(self.__motor2_pin, GPIO.OUT)
+        GPIO.setup(self.__motor1_pin, GPIO.OUT)#left motor
+        GPIO.setup(self.__motor2_pin, GPIO.OUT)#right motor
         self.motor_1_pwm = GPIO.PWM(self.__motor1_pin,self.__starting_freq)
         self.motor_2_pwm = GPIO.PWM(self.__motor2_pin,self.__starting_freq)
         #calibration should move to its own function
@@ -147,9 +147,9 @@ class Drone:
 
                 text = "\r50"
 
-                if self.joy_x_val > 55:
+                if self.joy_x_val < 55:
                     adj_val = abs(self.joy_x_val - speed_val)
-                    pwm_val = speed_val+adj_val
+                    pwm_val = speed_val + adj_val
                     text = "\rleft: " + str(pwm_val) + "right: " + str(speed_val)
                     if pwm_val > 90:
                         pwm_val = 90
@@ -158,9 +158,9 @@ class Drone:
                     self.motor_1_pwm.ChangeDutyCycle(pwm_val)
                     self.motor_2_pwm.ChangeDutyCycle(speed_val)
 
-                elif self.joy_x_val < 45:
+                elif self.joy_x_val > 45:
                     adj_val = abs(self.joy_x_val - speed_val)
-                    pwm_val = speed_val+adj_val
+                    pwm_val = speed_val + adj_val
                     text = "\rleft: " + str(speed_val) + "right: " + str(pwm_val)
                     if pwm_val > 90:
                         pwm_val = 90
