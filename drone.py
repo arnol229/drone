@@ -4,6 +4,7 @@ try:
         import time
         import os
         from RPi import GPIO
+        import threading
 except Exception as e:
     print("Error importing module: {0}".format(str(e)))
     exit()
@@ -20,7 +21,7 @@ class Drone:
         self.__joy_swt_channel=2
 
         ## Delay in checking input
-        self.__delay=.5
+        self.__delay=.005
 
         ## Motor Details
         self.__motor_pwm_pin=21
@@ -44,15 +45,23 @@ class Drone:
         data = ((adc[1]&3) << 8) + adc[2]
         return data
 
+    def joy_input(self):
+        while True:
+            self.joy_x_val = ((self.read_adc(self.__joy_x_channel)/10)-100)*-1
+            self.joy_y_val = ((self.read_adc(self.__joy_y_channel)/10)-100)*-1
+            self.joy_swt_val = self.read_adc(self.__joy_swt_channel)
+            time.sleep(self.__delay)
+
     def fly(self):
         try:
+            threading.Thread(target=joy_input)
             while True:
-                x_val = ((self.read_adc(self.__joy_x_channel)/10)-100)*-1
-                y_val = ((self.read_adc(self.__joy_y_channel)/10)-100)*-1
-                swt_val = self.read_adc(self.__joy_swt_channel)
-                print "x:{0} | y:{1} | click:{2}\r".format(x_val,y_val, swt_val),
-                time.sleep(self.__delay)
+                print "x:{0} | y:{1} | click:{2}\r".format(
+                        self.joy_x_val,
+                        self.joy_y_val,
+                        self.joy_swt_val),
         except KeyboardInterrupt:
+            print
             print "Exiting flying mode"
         except Exception as e:
             print "error while flying: {0}".format(str(e))
