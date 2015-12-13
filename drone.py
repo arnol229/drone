@@ -59,7 +59,10 @@ class Drone:
 
     def fly(self):
         try:
-            threading.Thread(target=self.joy_input)
+            joystick_thread = threading.Thread(target=self.joy_input)
+            joystick_thread.daemon = True
+            joystick_thread.start()
+
             while True:
                 print "x:{0} | y:{1} | click:{2}\r".format(
                         self.joy_x_val,
