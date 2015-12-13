@@ -28,7 +28,7 @@ class Drone:
     """
     def __init__(self):
         ## Delay in checking input
-        self.__delay = .03
+        self.__delay = .02
 
         ########## SPI ##########
         print "Initializing SPI port"
@@ -79,15 +79,19 @@ class Drone:
         ########## MOTOR ##########
         print "Initializing motor"
 
-        self.__motor_pwm_pin = 21
-        self.__starting_freq = 1000
+        self.__motor1_pin = 21
+        self.__motor2_pin = 20
+        self.__starting_freq = 4000
         self.__starting_dc = 50
 
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.__motor_pwm_pin, GPIO.OUT)
-        self.pwm = GPIO.PWM(self.__motor_pwm_pin,self.__starting_freq)
-        self.pwm.start(50)
-
+        GPIO.setup(self.__motor1_pin, GPIO.OUT)
+        GPIO.setup(self.__motor2_pin, GPIO.OUT)
+        self.motor_1_pwm = GPIO.PWM(self.__motor1_pin,self.__starting_freq)
+        self.motor_2_pwm = GPIO.PWM(self.__motor2_pin,self.__starting_freq)
+        #calibration should move to its own function
+        self.motor_2_pwm.start(50)
+        self.motor_1_pwm.start(50)
         ############################
         print "Ready"
 
@@ -129,15 +133,16 @@ class Drone:
     def fly(self):
         try:
             while True:
-                joy_text = "\rJoystick --- x:{0} | y:{1} | click:{2}            \n".format(
+                self.pwm
+                joy_text = "\rJoystick --- (( x:{0} | y:{1} | click:{2} )) ".format(
                         self.joy_x_val,
                         self.joy_y_val,
                         self.joy_swt_val)
-                gyro_text = "\rGyro --- x:{0} | y:{1} | z:{2}            \n".format(
+                gyro_text = "Gyro --- (( x:{0} | y:{1} | z:{2} )) ".format(
                         self.gyro_x_val,
                         self.gyro_y_val,
                         self.gyro_z_val)
-                accel_text = "\rAccel --- x:{0} | y:{1} | z:{2}            \n".format(
+                accel_text = "Accel --- (( x:{0} | y:{1} | z:{2} ))".format(
                         self.accel_x_val,
                         self.accel_y_val,
                         self.accel_z_val)
