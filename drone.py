@@ -133,10 +133,35 @@ class Drone:
     def fly(self):
         try:
             while True:
-                joy_text = "\rJoystick --- (( x:{0} | y:{1} | click:{2} )) ".format(
-                        self.joy_x_val,
-                        self.joy_y_val,
-                        self.joy_swt_val)
+                # joy_text = "\rJoystick --- (( x:{0} | y:{1} | click:{2} )) ".format(
+                #         self.joy_x_val,
+                #         self.joy_y_val,
+                #         self.joy_swt_val)
+                # josytick moves to the right, x input is lower
+                # joystick moves to the left, x input is bigger
+                speed_val = self.joy_y_val
+                if speed_val >= 80:
+                    speed_val = 80
+                elif speed_val <=20:
+                    speed_val = 20
+
+                text = "\r50"
+
+                if self.joy_x_val > 55:
+                    adj_val = abs(self.joy_x_val - speed_val)
+                    text = "\r" + str(adj_val) + str(speed_val)
+                    self.motor_1_pwm.ChangeDutyCycle(speed_val+adj_val)
+                    self.motor_2_pwm.ChangeDutyCycle(speed_val)
+
+                elif self.joy_x_val < 45:
+                    adj_val = abs(self.joy_x_val - speed_val)
+                    text = "\r" + str(adj_val) + str(speed_val)
+                    self.motor_2_pwm.ChangeDutyCycle(speed_val+adj_val)
+                    self.motor_1_pwm.ChangeDutyCycle(speed_val)
+
+                else:
+                    self.motor_2_pwm.ChangeDutyCycle(50)
+                    self.motor_1_pwm.ChangeDutyCycle(50)
                 # gyro_text = "Gyro --- (( x:{0} | y:{1} | z:{2} )) ".format(
                 #         self.gyro_x_val,
                 #         self.gyro_y_val,
@@ -145,7 +170,7 @@ class Drone:
                 #         self.accel_x_val,
                 #         self.accel_y_val,
                 #         self.accel_z_val)
-                sys.stdout.write(joy_text)# + gyro_text + accel_text)\
+                sys.stdout.write(text)# + gyro_text + accel_text)\
                 sys.stdout.write("\033[K")
                 sys.stdout.flush()
 
