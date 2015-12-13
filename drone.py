@@ -126,7 +126,8 @@ class Drone:
                         self.accel_x_val,
                         self.accel_y_val,
                         self.accel_z_val)
-                print (joy_text + gyro_text + accel_text),
+                sys.stdout.write(joy_text + gyro_text + accel_text)
+                sys.stdout.flush()
 
         except KeyboardInterrupt:
             print
