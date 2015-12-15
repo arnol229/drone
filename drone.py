@@ -22,14 +22,25 @@ class Drone:
     ======
     To-Do
     ======
-        Enable motor
-        Encorporate 2 motors
+        Check if it is a pi and that i2c and SPI are Enabled
+        if not, make file changes and reboot
+        add a script on boot to reload this
+
+        if module fails import, pip install it
+
+        Check GPIO pins?
+
+        Make Motor class and attach to the drone
+
         Everything else.
+
     """
     def __init__(self):
         ## Delay in checking input
         self.__delay = .02
         GPIO.setmode(GPIO.BCM)
+        self.__calibration_retry = 0
+        self.__calibration_tries = 0
 
         ########## SPI ##########
         print "Initializing SPI port"
@@ -59,7 +70,7 @@ class Drone:
         self.joy_y_val = None
         self.joy_swt_val = None
 
-        self.__joystick_thread = threading.Thread(target=self.joy_input)
+        self.__joystick_thread = threading.Thread(target=self.joy_input,name='joy_thread')
         self.__joystick_thread.daemon = True
         self.__joystick_thread.start()
 
@@ -92,26 +103,111 @@ class Drone:
         GPIO.setup(self.__motor2_pin, GPIO.OUT)#right motor
         self.motor_1_pwm = GPIO.PWM(self.__motor1_pin,self.__starting_freq)
         self.motor_2_pwm = GPIO.PWM(self.__motor2_pin,self.__starting_freq)
-        #calibration should move to its own function
-        self.calibrate_motors()
+
+        raw_input("Press enter to enter motor calibration")
+        while True:
+            if not self.calibrate_motors():
+                self.motor_2_pwm.stop()
+                self.motor_1_pwm.stop()
+                print "Restarting Calibration..."
+                continue
+            print "Calibration complete."
+            break
         ############################
         print "Ready"
 
+    #should these 2 methods be inside calibrate_motors?
+    def print_joy(self):
+            while True:
+                sys.stdout.write("\r" + str(self.__joy_x_channel))
+                sys.stdout.write("\033[K")
+                sys.stdout.flush()
+    
+    def retry_calibration(self):
+        while True:
+            if not self.joy_swt_val:
+                self.__calibration_tries = 0
+                print "\n\nRetry! The battery should be replugged back in!"
+
+
     def calibrate_motors(self):
-        print "click in joystick to begin calibration"
+        """
+        Motor Calibration
+        ----------
+        (Should do something like)
+        1) point joystick to the highest point in the throttle
+        and press enter to sync with the ESC
+        2) point joystick to the lowest point in the throttle
+        and press enter to sync with the ESC
+        3) Return to the center and press enter to start flying!
+        ===
+        IF you want to start over:
+        unplug the battery click the joystick in
+        """
+        print self.calibrate_motors.__doc__
+        tries = 0
+
+        #def print_joy():
+        #    while True:
+        #        sys.stdout.write("\r" + str(self.__joy_x_channel))
+        #        sys.stdout.write("\033[K")
+        #        sys.stdout.flush()
+
+        #def retry_calibration(self):
+        #    while True:
+        #        if not self.joy_swt_val:
+        #        self.__calibration_tries = 0
+        #        raw_input("Retry! Hit enter to verify that the battery has been replugged back in")
+
+        ## start thread for printing out the joystick reading and listening for joystick switch to retry
+        joy_display = threading.Thread(target=self.print_joy,name="print_joy")
+        retry = threading.Thread(target=self.calibration_retry,name="calibration_retry")
+        
+        retry.start()
+        joy_display.start()
+        raw_input("\nSelect Lowest Throttle press enter to start PWM:")
+        print "this is hardcoded to be 50 percent right now"
+        self.motor_2_pwm.start(50)
+        self.motor_2_pwm.start(50)
+        while tries <= 3:
+            tries += 1
+            #retry.start()
+            raw_input("\nPress enter to set PWM:")
+            #retry.stop()
+            print# "\n"
+            # \/ shouldnt be needed if the value stays when joy_display is stoppped?
+            # print str(self.joy_x_val)
+            if not self.set_duty_cycle(pwm=self.joy_x_val):
+                joy_display.stop()
+                retry.stop()
+                print "Replug in the battery and try again!"
+                return False
+        retry.stop()
+        joy_display.stop()
+        return True
+
+    def set_duty_cycle(self,pwm=None):
         while True:
-            if self.joy_swt_val == 0:
-                self.motor_2_pwm.start(50)
-                self.motor_1_pwm.start(50)
-                break
-        print "click in joystick to go low"
-        while True:
-            if self.joy_swt_val == 0:
-                self.motor_1_pwm.ChangeDutyCycle(0)
-                self.motor_2_pwm.ChangeDutyCycle(0)                
-                break
-        print "did it work? or something?"
-        time.sleep(3)
+            if pwm:
+                try:
+                    pwm = abs(int(pwm))
+                    if pwm > 0 and pwm < 100:
+                        self.motor_2_pwm.ChangeDutyCycle(pwm)
+                        self.motor_1_pwm.ChangeDutyCycle(pwm)
+                        return True
+                    else:
+                        print "Duty Cycle must be between in range 0-100"
+                        return False
+                except ValueError:
+                    print "Psssst. You are supposed to enter a number!"
+                    return False
+
+            else:
+                print "You can type cancel to escape"
+                pwm = raw_input("Set Duty Cycle to: ")
+                if pwm == "cancel":
+                    print "--Cancelled--"
+                    return False
 
     def read_adc(self, channel):
         adc = self.__spi.xfer2([1,(8+channel)<<4,0])
@@ -119,11 +215,15 @@ class Drone:
         return data
 
     def joy_input(self):
+        """
+        Continually reads Reads the joy stick values to the drone and delays
+        Initiated as 'joy_thread' in drone start-up
+        """
         while True:
             self.joy_x_val = ((self.read_adc(self.__joy_x_channel)/10)-100)*-1
             self.joy_y_val = ((self.read_adc(self.__joy_y_channel)/10)-100)*-1
             self.joy_swt_val = self.read_adc(self.__joy_swt_channel)
-            time.sleep(self.__delay)
+            time.sleep(self.__delay) if self.__delay else 0
 
     def gyro_input(self):
         def read_word(adr):
@@ -165,7 +265,8 @@ class Drone:
 
                 text = "\rstarting"
 
-                if self.joy_x_val < 55:
+                ## this math is all kinds of screwed up
+                if self.joy_x_val > 55:
                     adj_val = abs(self.joy_x_val - speed_val)
                     pwm_val = speed_val + adj_val
                     if pwm_val > 90:
@@ -176,7 +277,7 @@ class Drone:
                     self.motor_1_pwm.ChangeDutyCycle(pwm_val)
                     self.motor_2_pwm.ChangeDutyCycle(speed_val)
 
-                elif self.joy_x_val > 45:
+                elif self.joy_x_val < 45:
                     adj_val = abs(self.joy_x_val - speed_val)
                     pwm_val = speed_val + adj_val
                     if pwm_val > 90:
