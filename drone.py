@@ -8,6 +8,7 @@ try:
         import threading
         import smbus
         import socket
+        import struct
 except Exception as e:
     print("Error importing module: {0}".format(str(e)))
     exit()
@@ -130,17 +131,40 @@ class Drone:
                 print "Drone is not online"
                 sys.exit(9)
 
+            self.__lock = threading.Lock()
             #send the first four initial-commands to the drone
             self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Open network connection
             self.__sock.setblocking(0)                                      # Network should not block
             self.__sendrawmsg("\r")                                         # Wakes up command port
             time.sleep(0.01)
             self.__sendrawmsg("AT*PMODE=1,2\rAT*MISC=2,2,20,2000,3000\r")
+            self.__CmdCounter = 0
+            raw_input('what happened')
 
 
+    def __heartbeat(self):
+    # If the drone does not get a command, it will mutter after 50ms (CTRL watchdog / state[28] will set to 1)
+    # and panic after 2 seconds and abort data-communication on port 5554 (then you have to initialize the network again).
+    # Heartbeat will reset the watchdog and, by the way, the ACK_BIT (state[6], to accept any other AT*CONFIG command)
+    # If mainthread isn't alive anymore (because program crashed or whatever), heartbeat will initiate the shutdown.
+        # if str(threading.enumerate()).count("MainThread, stopped") or str(threading.enumerate()).count("MainThread")==0:
+        #     print "oh no"
+        # else:   self.at("COMWDG",[])
+        # quick fix to just see what happens
+        self.at("COMWDG",[])
 
-
-        print "Ready"
+    def at(self, command, params):
+        self.__lock.acquire()
+        paramLn = ""
+        if params:  
+            for p in params:
+                if type(p)   == int:    paramLn += ","+str(p)
+                elif type(p) == float:  paramLn += ","+str(struct.unpack("i", struct.pack("f", p))[0])
+                elif type(p) == str:    paramLn += ",\""+p+"\""
+        msg = "AT*"+command+"="+str(self.__CmdCounter)+paramLn+"\r"
+        self.__CmdCounter += 1
+        self.__sendrawmsg(msg)
+        self.__lock.release()
 
     def __sendrawmsg(self, msg):
         try:        self.__keepalive.cancel()
