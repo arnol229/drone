@@ -131,6 +131,7 @@ class Drone:
                 print "Drone is not online"
                 sys.exit(9)
             self.showCommands = 1
+            self.CmdPort = 5556
 
             self.__lock = threading.Lock()
             #send the first four initial-commands to the drone
