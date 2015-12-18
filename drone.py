@@ -7,6 +7,7 @@ try:
         from RPi import GPIO
         import threading
         import smbus
+        import socket
 except Exception as e:
     print("Error importing module: {0}".format(str(e)))
     exit()
@@ -35,86 +36,120 @@ class Drone:
         Everything else.
 
     """
-    def __init__(self):
+    def __init__(self,version):
         ## Delay in checking input
-        self.__delay = .02
-        GPIO.setmode(GPIO.BCM)
-        self.__calibration_retry = 0
-        self.__calibration_tries = 0
+        # new connection method:
+        if version not in [1,2]:
+            raise Exception("Version 1 or 2 available only")
 
-        ########## SPI ##########
-        print "Initializing SPI port"
+        if version == 1:
+            self.__delay = .02
+            GPIO.setmode(GPIO.BCM)
+            self.__calibration_retry = 0
+            self.__calibration_tries = 0
 
-        self.__spi = spidev.SpiDev()
-        self.__spi.open(0,0)
+            ########## SPI ##########
+            print "Initializing SPI port"
 
-        #ADC channel on the ADC chip#
-        self.__joy_x_channel = 0
-        self.__joy_y_channel = 1
-        self.__joy_swt_channel = 2
+            self.__spi = spidev.SpiDev()
+            self.__spi.open(0,0)
 
-
-        ########## LED ##########
-        self.__led_r_pin = 24
-        self.__led_b_pin = None
-        self.__led_g_pin = None
-
-        GPIO.setup(self.__led_r_pin, GPIO.OUT)
-        GPIO.output(self.__led_r_pin, GPIO.HIGH)
+            #ADC channel on the ADC chip#
+            self.__joy_x_channel = 0
+            self.__joy_y_channel = 1
+            self.__joy_swt_channel = 2
 
 
-        ########## JOYSTICK ##########
-        print "Initializing joystick"
+            ########## LED ##########
+            self.__led_r_pin = 24
+            self.__led_b_pin = None
+            self.__led_g_pin = None
 
-        self.joy_x_val = None
-        self.joy_y_val = None
-        self.joy_swt_val = None
-
-        self.__joystick_thread = threading.Thread(target=self.joy_input,name='joy_thread')
-        self.__joystick_thread.daemon = True
-        self.__joystick_thread.start()
+            GPIO.setup(self.__led_r_pin, GPIO.OUT)
+            GPIO.output(self.__led_r_pin, GPIO.HIGH)
 
 
-        ########## GYRO ##########
-        self.__bus = smbus.SMBus(1)
-        self.__bus.write_byte_data(0x68, 0x6b, 0)
+            ########## JOYSTICK ##########
+            print "Initializing joystick"
 
-        self.gyro_x_val = None
-        self.gyro_y_val = None
-        self.gyro_z_val = None
-        self.accel_x_val = None
-        self.accel_y_val = None
-        self.accel_z_val = None
+            self.joy_x_val = None
+            self.joy_y_val = None
+            self.joy_swt_val = None
 
-        self.__gyro_thread = threading.Thread(target=self.gyro_input)
-        self.__gyro_thread.daemon = True
-        self.__gyro_thread.start()
+            self.__joystick_thread = threading.Thread(target=self.joy_input,name='joy_thread')
+            self.__joystick_thread.daemon = True
+            self.__joystick_thread.start()
 
 
-        ########## MOTOR ##########
-        print "Initializing motor"
+            ########## GYRO ##########
+            self.__bus = smbus.SMBus(1)
+            self.__bus.write_byte_data(0x68, 0x6b, 0)
 
-        self.__motor1_pin = 21
-        self.__motor2_pin = 20
-        self.__starting_freq = 1000
-        self.__starting_dc = 50
+            self.gyro_x_val = None
+            self.gyro_y_val = None
+            self.gyro_z_val = None
+            self.accel_x_val = None
+            self.accel_y_val = None
+            self.accel_z_val = None
 
-        GPIO.setup(self.__motor1_pin, GPIO.OUT)#left motor
-        GPIO.setup(self.__motor2_pin, GPIO.OUT)#right motor
-        self.motor_1_pwm = GPIO.PWM(self.__motor1_pin,self.__starting_freq)
-        self.motor_2_pwm = GPIO.PWM(self.__motor2_pin,self.__starting_freq)
+            self.__gyro_thread = threading.Thread(target=self.gyro_input)
+            self.__gyro_thread.daemon = True
+            self.__gyro_thread.start()
 
-        raw_input("Press enter to enter motor calibration")
-        while True:
-            if not self.calibrate_motors():
-                self.motor_2_pwm.stop()
-                self.motor_1_pwm.stop()
-                print "Restarting Calibration..."
-                continue
-            print "Calibration complete."
-            break
-        ############################
+
+            ########## MOTOR ##########
+            print "Initializing motor"
+
+            self.__motor1_pin = 21
+            self.__motor2_pin = 20
+            self.__starting_freq = 1000
+            self.__starting_dc = 50
+
+            GPIO.setup(self.__motor1_pin, GPIO.OUT)#left motor
+            GPIO.setup(self.__motor2_pin, GPIO.OUT)#right motor
+            self.motor_1_pwm = GPIO.PWM(self.__motor1_pin,self.__starting_freq)
+            self.motor_2_pwm = GPIO.PWM(self.__motor2_pin,self.__starting_freq)
+
+            raw_input("Press enter to enter motor calibration")
+            while True:
+                if not self.calibrate_motors():
+                    self.motor_2_pwm.stop()
+                    self.motor_1_pwm.stop()
+                    print "Restarting Calibration..."
+                    continue
+                print "Calibration complete."
+                break
+            ############################
+
+        elif version == 2:
+            self.DroneIP="192.168.1.74"
+            try:
+                socket.socket().connect((self.DroneIP, 21))
+                socket.socket().close()
+            except:
+                print "Drone is not online"
+                sys.exit(9)
+
+            #send the first four initial-commands to the drone
+            self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Open network connection
+            self.__sock.setblocking(0)                                      # Network should not block
+            self.__sendrawmsg("\r")                                         # Wakes up command port
+            time.sleep(0.01)
+            self.__sendrawmsg("AT*PMODE=1,2\rAT*MISC=2,2,20,2000,3000\r")
+
+
+
+
         print "Ready"
+
+    def __sendrawmsg(self, msg):
+        try:        self.__keepalive.cancel()
+        except:     pass
+        if self.showCommands:
+            if msg.count("COMWDG") < 1: print msg
+        self.__sock.sendto(msg, (self.DroneIP, self.CmdPort))
+        self.__keepalive = threading.Timer(0.1, self.__heartbeat)
+        self.__keepalive.start()
 
     #should these 2 methods be inside calibrate_motors?
     def print_joy(self):
